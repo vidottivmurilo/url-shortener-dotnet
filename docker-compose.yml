@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  # ---------------------------------------------------------------------------
+  # 1. Banco de Dados Relacional: PostgreSQL
+  # ---------------------------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: shortener-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: mysecretpassword
+      POSTGRES_DB: shortener_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # ---------------------------------------------------------------------------
+  # 2. Cache em Memória: Redis
+  # ---------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: shortener-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  # ---------------------------------------------------------------------------
+  # 3. Message Broker: RabbitMQ (com Painel Web de Gestão)
+  # ---------------------------------------------------------------------------
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: shortener-rabbitmq
+    restart: always
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "5672:5672" # Porta da fila (onde o código C# se conecta)
+      - "15672:15672" # Porta do painel visual no seu navegador
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
+# -----------------------------------------------------------------------------
+# Definição dos Volumes Persistentes
+# -----------------------------------------------------------------------------
+volumes:
+  postgres_data:
+  redis_data:
+  rabbitmq_data:
