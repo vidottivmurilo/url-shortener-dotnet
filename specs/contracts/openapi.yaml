@@ -1,0 +1,233 @@
+openapi: 3.0.3
+info:
+  title: Encurtador de Links API
+  description: API RESTful de alta performance para encurtamento de URLs, redirecionamento com cache e métricas analíticas.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:5000
+    description: Servidor de Desenvolvimento Local
+
+paths:
+  /api/v1/urls:
+    post:
+      summary: Cria um novo link encurtado
+      operationId: createShortUrl
+      description: Recebe uma URL original e gera um shortCode Base62 único com persistência e cache inicial.
+      tags:
+        - URLs
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateShortUrlRequest'
+      responses:
+        '201':
+          description: Link encurtado criado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShortenedUrlResponse'
+        '400':
+          description: Erro de validação nos dados fornecidos
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+
+  /{shortCode}:
+    get:
+      summary: Redireciona para a URL original
+      operationId: resolveShortUrl
+      description: Consulta o Redis/Postgres pelo shortCode e retorna HTTP 302 com o header Location apontando para originalUrl.
+      tags:
+        - Redirection
+      parameters:
+        - name: shortCode
+          in: path
+          required: true
+          description: Código encurtado Base62 (7 caracteres)
+          schema:
+            type: string
+            pattern: '^[0-9a-zA-Z]{1,11}$'
+            example: 'a7B9x12'
+      responses:
+        '302':
+          description: Redirecionamento temporário executado com sucesso
+          headers:
+            Location:
+              schema:
+                type: string
+                format: uri
+                example: 'https://exemplo.com.br/artigo-longo'
+        '404':
+          description: Link encurtado inexistente
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '410':
+          description: Link desativado ou expirado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+
+  /api/v1/urls/{shortCode}/stats:
+    get:
+      summary: Obtém métricas e estatísticas de acesso de um link
+      operationId: getUrlStats
+      description: Retorna contadores de cliques e dados analíticos de acesso processados assincronamente.
+      tags:
+        - Analytics
+      parameters:
+        - name: shortCode
+          in: path
+          required: true
+          schema:
+            type: string
+            example: 'a7B9x12'
+      responses:
+        '200':
+          description: Métricas consolidadas com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UrlStatsResponse'
+        '404':
+          description: Link não encontrado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+
+  /api/v1/urls/{shortCode}:
+    delete:
+      summary: Desativa manualmente um link encurtado
+      operationId: deactivateShortUrl
+      description: Realiza soft-delete (isActive = false) e purga a entrada do cache Redis.
+      tags:
+        - URLs
+      parameters:
+        - name: shortCode
+          in: path
+          required: true
+          schema:
+            type: string
+            example: 'a7B9x12'
+      responses:
+        '204':
+          description: Link desativado com sucesso (sem conteúdo)
+        '404':
+          description: Link não encontrado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+
+components:
+  schemas:
+    CreateShortUrlRequest:
+      type: object
+      required:
+        - originalUrl
+      properties:
+        originalUrl:
+          type: string
+          format: uri
+          minLength: 10
+          maxLength: 2048
+          example: 'https://minhaempresa.com.br/produtos/promocao-especial'
+        expiresAt:
+          type: string
+          format: date-time
+          nullable: true
+          example: '2026-12-31T23:59:59Z'
+
+    ShortenedUrlResponse:
+      type: object
+      required:
+        - shortCode
+        - originalUrl
+        - shortUrl
+        - createdAt
+        - isActive
+      properties:
+        shortCode:
+          type: string
+          example: 'a7B9x12'
+        originalUrl:
+          type: string
+          format: uri
+          example: 'https://minhaempresa.com.br/produtos/promocao-especial'
+        shortUrl:
+          type: string
+          format: uri
+          example: 'http://localhost:5000/a7B9x12'
+        createdAt:
+          type: string
+          format: date-time
+          example: '2026-11-02T13:45:00Z'
+        expiresAt:
+          type: string
+          format: date-time
+          nullable: true
+          example: '2026-12-31T23:59:59Z'
+        isActive:
+          type: boolean
+          example: true
+
+    UrlStatsResponse:
+      type: object
+      required:
+        - shortCode
+        - originalUrl
+        - totalClicks
+        - createdAt
+      properties:
+        shortCode:
+          type: string
+          example: 'a7B9x12'
+        originalUrl:
+          type: string
+          format: uri
+          example: 'https://minhaempresa.com.br/produtos/promocao-especial'
+        totalClicks:
+          type: integer
+          format: int64
+          example: 142
+        lastClickedAt:
+          type: string
+          format: date-time
+          nullable: true
+          example: '2026-11-02T14:10:00Z'
+        createdAt:
+          type: string
+          format: date-time
+          example: '2026-11-02T13:45:00Z'
+
+    ProblemDetails:
+      type: object
+      required:
+        - title
+        - status
+      properties:
+        type:
+          type: string
+          example: 'https://httpstatuses.com/400'
+        title:
+          type: string
+          example: 'Validation Error'
+        status:
+          type: integer
+          example: 400
+        detail:
+          type: string
+          example: 'A URL informada deve possuir formato HTTP ou HTTPS válido.'
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string

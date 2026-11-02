@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Encurtador de Links de Alta Performance</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col font-sans antialiased">
+  <!-- Header / Navbar -->
+  <header class="border-b border-slate-800 bg-slate-950/70 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center font-bold text-white shadow-lg shadow-indigo-500/30">
+          ⚡
+        </div>
+        <span class="font-bold text-lg text-white tracking-tight">Shortener<span class="text-indigo-400">.NET</span></span>
+      </div>
+      <div class="flex items-center space-x-2 text-xs text-slate-400">
+        <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span>API Online</span>
+        <a href="/swagger" target="_blank" class="ml-4 text-indigo-400 hover:text-indigo-300 font-medium">Swagger Docs &rarr;</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex-1 max-w-4xl mx-auto px-4 py-12 w-full">
+    <!-- Hero Header -->
+    <div class="text-center mb-10">
+      <h1 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+        Encurtador de URLs <span class="text-indigo-400">Ultrarrápido</span>
+      </h1>
+      <p class="text-slate-400 mt-2 text-sm sm:text-base max-w-xl mx-auto">
+        Geração em Base62, latência &lt; 10ms com cache em memória e métricas analíticas assíncronas.
+      </p>
+    </div>
+
+    <!-- Card Principal: Formulário de Encurtamento -->
+    <div class="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-6 sm:p-8 shadow-2xl backdrop-blur">
+      <form id="shortenerForm" class="space-y-4">
+        <div>
+          <label for="originalUrlInput" class="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
+            URL Original Longa
+          </label>
+          <div class="relative">
+            <input
+              type="url"
+              id="originalUrlInput"
+              name="originalUrl"
+              placeholder="https://exemplo.com.br/artigo-super-longo-para-compartilhar"
+              required
+              class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+            />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="expiresAtInput" class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
+              Expiração (Opcional)
+            </label>
+            <input
+              type="datetime-local"
+              id="expiresAtInput"
+              name="expiresAt"
+              class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+            />
+          </div>
+          <div class="flex items-end">
+            <button
+              type="submit"
+              id="submitButton"
+              class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 px-6 rounded-xl transition duration-150 flex items-center justify-center space-x-2 shadow-lg shadow-indigo-600/30 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <span id="submitButtonText">Encurtar URL</span>
+              <span id="submitSpinner" class="hidden">
+                <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              </span>
+            </button>
+          </div>
+        </div>
+      </form>
+
+      <!-- Estado: Error Banner -->
+      <div id="errorBanner" class="hidden mt-4 p-4 rounded-xl bg-rose-950/50 border border-rose-800 text-rose-300 text-sm flex items-start space-x-3">
+        <span class="text-rose-400 text-lg">⚠️</span>
+        <div class="flex-1">
+          <p class="font-bold text-rose-200" id="errorTitle">Erro na Requisição</p>
+          <p id="errorDetail" class="text-xs text-rose-300/90 mt-0.5"></p>
+        </div>
+      </div>
+
+      <!-- Estado: Success Card -->
+      <div id="successCard" class="hidden mt-6 p-5 rounded-xl bg-slate-900 border border-indigo-500/50 shadow-inner">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div class="truncate">
+            <span class="text-xs font-semibold uppercase tracking-wider text-emerald-400 flex items-center space-x-1.5 mb-1">
+              <span>✓</span><span>Link Gerado com Sucesso</span>
+            </span>
+            <a id="shortUrlLink" href="#" target="_blank" class="text-indigo-400 hover:text-indigo-300 font-mono font-semibold text-lg underline break-all"></a>
+            <p id="originalUrlPreview" class="text-xs text-slate-500 truncate mt-1"></p>
+          </div>
+          <div class="flex items-center space-x-2 shrink-0">
+            <button
+              id="copyButton"
+              class="bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 text-sm font-medium px-4 py-2 rounded-lg transition flex items-center space-x-1.5"
+            >
+              <span id="copyIcon">📋</span>
+              <span id="copyText">Copiar</span>
+            </button>
+            <a
+              id="openButton"
+              href="#"
+              target="_blank"
+              class="bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition"
+            >
+              Abrir &rarr;
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabela de Links Recentes -->
+    <div class="mt-12">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-bold text-white">Histórico de Links Recentes</h2>
+        <span id="linksCountBadge" class="text-xs px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-400 font-mono">0 links</span>
+      </div>
+
+      <div class="bg-slate-800/50 border border-slate-800 rounded-2xl overflow-hidden">
+        <!-- Empty State -->
+        <div id="emptyLinksState" class="p-8 text-center">
+          <div class="w-12 h-12 rounded-full bg-slate-800 text-slate-500 flex items-center justify-center mx-auto mb-3 text-xl">
+            🔗
+          </div>
+          <p class="text-sm font-medium text-slate-400">Nenhum link encurtado nesta sessão.</p>
+          <p class="text-xs text-slate-600 mt-1">Cole uma URL acima para gerar seu primeiro link curto.</p>
+        </div>
+
+        <!-- Table Container -->
+        <div id="linksTableContainer" class="hidden overflow-x-auto">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-slate-900/60 text-xs font-semibold text-slate-400 uppercase tracking-wider border-b border-slate-800">
+              <tr>
+                <th class="px-4 py-3">Código</th>
+                <th class="px-4 py-3">URL Original</th>
+                <th class="px-4 py-3">Criado em</th>
+                <th class="px-4 py-3 text-right">Ação</th>
+              </tr>
+            </thead>
+            <tbody id="linksTableBody" class="divide-y divide-slate-800 text-slate-300"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="border-t border-slate-800 text-center py-4 text-xs text-slate-600">
+    Encurtador de Links &bull; Arquitetura Limpa em C# .NET 8 &bull; Esteira de Engenharia de Software
+  </footer>
+
+  <script src="/app.js"></script>
+</body>
+</html>

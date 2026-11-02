@@ -93,6 +93,18 @@ O objetivo do projeto é construir um encurtador de URLs resiliente, seguro e de
 
 ---
 
+### ADR-006: Frontend Integrado com SPA Responsiva e Paridade Full-Stack
+* **Data:** 2026-11-02
+* **Status:** Aprovado
+* **Referência:** US-001 / Lei de Ferro da Paridade Full-Stack
+* **Contexto:** A especificação da esteira exige que 100% dos `operationId`s expostos no Backend possuam interface visual correspondente com os 4 estados de UI (Loading, Empty, Error, Success). Para o MVP, adotar um servidor Node.js/Next.js apartado adicionaria complexidade desnecessária de deploy e portas concorrentes.
+* **Decisão:** Implementar uma SPA moderna (HTML5, Tailwind CSS e Vanilla/TypeScript client tipado) servida diretamente pelo middleware de arquivos estáticos da Web API ASP.NET Core (`src/Shortener.Api/wwwroot`).
+* **Trade-offs Aceitos:**
+  * *Ganhos:* Deploy em contêiner único, inicialização em 1 comando, zero sobrecarga de runtime Node em produção e adesão estrita ao RFC 7807 ProblemDetails no cliente.
+  * *Custos/Limitações:* Sem Server-Side Rendering (SSR) inicial; adequado para a proposta de Web App e dashboard analítico.
+
+---
+
 ## 4. Diagrama Visual da Arquitetura
 
 ```mermaid

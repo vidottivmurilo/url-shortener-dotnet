@@ -1,44 +1,64 @@
+using Microsoft.AspNetCore.Mvc;
+using Shortener.Application.Common.Interfaces;
+using Shortener.Application.Urls;
+using Shortener.Application.Urls.DTOs;
+using Shortener.Infrastructure.Persistence;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+// Repositórios e Serviços de Aplicação
+builder.Services.AddSingleton<IShortenedUrlRepository, InMemoryShortenedUrlRepository>();
+builder.Services.AddScoped<CreateShortUrlHandler>(sp =>
+{
+    var repo = sp.GetRequiredService<IShortenedUrlRepository>();
+    var httpContext = sp.GetService<IHttpContextAccessor>()?.HttpContext;
+    var baseUrl = httpContext != null
+        ? $"{httpContext.Request.Scheme}://{httpContext.Request.Host}"
+        : "http://localhost:5000";
+    return new CreateShortUrlHandler(repo, baseUrl);
+});
+
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+app.UseDefaultFiles();
+app.UseStaticFiles();
 
-var summaries = new[]
+// Endpoint: createShortUrl
+app.MapPost("/api/v1/urls", async ([FromBody] CreateShortUrlRequest request, [FromServices] CreateShortUrlHandler handler) =>
 {
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
+    try
+    {
+        var response = await handler.HandleAsync(request);
+        return Results.Created($"/api/v1/urls/{response.ShortCode}", response);
+    }
+    catch (ArgumentException ex)
+    {
+        return Results.Problem(
+            statusCode: StatusCodes.Status400BadRequest,
+            title: "Validation Error",
+            detail: ex.Message
+        );
+    }
+    catch (Exception)
+    {
+        return Results.Problem(
+            statusCode: StatusCodes.Status500InternalServerError,
+            title: "Internal Server Error",
+            detail: "Ocorreu um erro inesperado ao processar a requisição."
+        );
+    }
 })
-.WithName("GetWeatherForecast")
+.WithName("CreateShortUrl")
 .WithOpenApi();
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
