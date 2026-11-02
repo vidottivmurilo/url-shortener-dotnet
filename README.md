@@ -28,10 +28,18 @@ dotnet run --project src/Shortener.Api
 * **Frontend SPA:** Abra `http://localhost:5030` no navegador.
 * **Swagger OpenAPI:** Acesse `http://localhost:5030/swagger`.
 
-### 3. Executar os Testes Automatizados (TDD)
+### 3. Executar os Testes Unitários & Integração (TDD)
 ```bash
 dotnet test
 ```
+
+### 4. Executar os Testes de Carga & Estresse (NBomber)
+Com a API rodando em segundo plano, abra outro terminal e execute:
+```bash
+dotnet run --project tests/Shortener.LoadTests
+```
+* Mede **RPS real**, percentis de latência (**p50, p95, p99**) e taxas de sucesso/falha.
+* Gera relatórios detalhados no console e arquivos HTML visuais na pasta `reports/`.
 
 ---
 
