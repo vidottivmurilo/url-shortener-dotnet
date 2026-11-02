@@ -25,8 +25,8 @@ docker compose up -d
 ```bash
 dotnet run --project src/Shortener.Api
 ```
-* **Frontend SPA:** Abra `http://localhost:5000` no navegador.
-* **Swagger OpenAPI:** Acesse `http://localhost:5000/swagger`.
+* **Frontend SPA:** Abra `http://localhost:5030` no navegador.
+* **Swagger OpenAPI:** Acesse `http://localhost:5030/swagger`.
 
 ### 3. Executar os Testes Automatizados (TDD)
 ```bash

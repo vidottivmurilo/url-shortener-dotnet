@@ -5,7 +5,7 @@ info:
   version: 1.0.0
 
 servers:
-  - url: http://localhost:5000
+  - url: http://localhost:5030
     description: Servidor de Desenvolvimento Local
 
 paths:
