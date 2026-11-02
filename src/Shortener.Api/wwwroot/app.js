@@ -150,12 +150,17 @@ async function createShortUrlApi(originalUrl, expiresAt) {
 dom.form.addEventListener('submit', async (e) => {
   e.preventDefault();
 
-  const originalUrl = dom.originalUrlInput.value.trim();
+  let originalUrl = dom.originalUrlInput.value.trim();
   const expiresAt = dom.expiresAtInput.value;
 
   if (!originalUrl) {
     showError('Campo Obrigatório', 'Por favor, informe uma URL original.');
     return;
+  }
+
+  // Previne erros de protocolo ausente quando o usuário digita apenas "google.com"
+  if (!/^https?:\/\//i.test(originalUrl)) {
+    originalUrl = 'https://' + originalUrl;
   }
 
   setLoading(true);

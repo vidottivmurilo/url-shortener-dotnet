@@ -104,8 +104,8 @@ app.MapGet("/api/v1/urls/{shortCode}/stats", async (string shortCode, [FromServi
 .WithName("GetUrlStats")
 .WithOpenApi();
 
-// Endpoint: resolveShortUrl (GET /{shortCode})
-app.MapGet("/{shortCode}", async (string shortCode, HttpContext httpContext, [FromServices] ResolveShortUrlHandler handler) =>
+// Endpoint: resolveShortUrl (GET /{shortCode}) - Restrito a caracteres alfanumericos Base62 para nao colidir com static files (app.js, favicon.ico)
+app.MapGet("/{shortCode:regex(^[0-9a-zA-Z]+$)}", async (string shortCode, HttpContext httpContext, [FromServices] ResolveShortUrlHandler handler) =>
 {
     try
     {
