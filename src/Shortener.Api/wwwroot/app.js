@@ -82,9 +82,28 @@ function renderRecentLinks() {
 
     const formattedDate = new Date(link.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
+    const isDeactivated = link.isDeactivated || false;
+    const shortCodeCell = isDeactivated
+      ? `<span class="line-through text-slate-500 font-mono">${link.shortCode}</span> <span class="text-xs bg-rose-950 text-rose-400 px-1.5 py-0.5 rounded ml-1">Inativo</span>`
+      : `<a href="${link.shortUrl}" target="_blank" class="hover:underline">${link.shortCode}</a>`;
+
+    const actionButtons = isDeactivated
+      ? `<span class="text-xs text-slate-500 italic">Desativado</span>`
+      : `
+        <button onclick="openStatsModal('${link.shortCode}')" class="text-xs bg-indigo-900/60 hover:bg-indigo-800 border border-indigo-700 text-indigo-200 px-2.5 py-1 rounded transition">
+          📊 Stats
+        </button>
+        <button onclick="navigator.clipboard.writeText('${link.shortUrl}')" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded transition">
+          Copiar
+        </button>
+        <button onclick="deactivateUrl('${link.shortCode}')" class="text-xs bg-rose-950/60 hover:bg-rose-900 border border-rose-800 text-rose-300 px-2 py-1 rounded transition" title="Desativar link">
+          ✕
+        </button>
+      `;
+
     tr.innerHTML = `
-      <td class="px-4 py-3 font-mono font-medium text-indigo-400">
-        <a href="${link.shortUrl}" target="_blank" class="hover:underline">${link.shortCode}</a>
+      <td class="px-4 py-3 font-medium text-indigo-400">
+        ${shortCodeCell}
       </td>
       <td class="px-4 py-3 max-w-xs truncate text-slate-300" title="${link.originalUrl}">
         ${link.originalUrl}
@@ -92,13 +111,8 @@ function renderRecentLinks() {
       <td class="px-4 py-3 text-xs text-slate-500 whitespace-nowrap">
         ${formattedDate}
       </td>
-      <td class="px-4 py-3 text-right space-x-2">
-        <button onclick="openStatsModal('${link.shortCode}')" class="text-xs bg-indigo-900/60 hover:bg-indigo-800 border border-indigo-700 text-indigo-200 px-2.5 py-1 rounded transition">
-          📊 Stats
-        </button>
-        <button onclick="navigator.clipboard.writeText('${link.shortUrl}')" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded transition">
-          Copiar
-        </button>
+      <td class="px-4 py-3 text-right space-x-1.5">
+        ${actionButtons}
       </td>
     `;
     dom.linksTableBody.appendChild(tr);
@@ -228,6 +242,32 @@ if (statsDom.closeButton) {
   statsDom.closeButton.addEventListener('click', () => {
     statsDom.modal.classList.add('hidden');
   });
+}
+
+// Desativação de Link (US-004)
+async function deactivateUrl(shortCode) {
+  if (!confirm(`Deseja realmente desativar o link encurtado '${shortCode}'?`)) {
+    return;
+  }
+
+  try {
+    const response = await fetch(`/api/v1/urls/${shortCode}`, {
+      method: 'DELETE'
+    });
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.detail || 'Falha ao desativar link');
+    }
+
+    const found = state.recentLinks.find(l => l.shortCode === shortCode);
+    if (found) {
+      found.isDeactivated = true;
+      renderRecentLinks();
+    }
+  } catch (e) {
+    alert(`Erro ao desativar: ${e.message}`);
+  }
 }
 
 // Inicialização

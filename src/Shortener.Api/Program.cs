@@ -31,6 +31,7 @@ builder.Services.AddScoped<CreateShortUrlHandler>(sp =>
 
 builder.Services.AddScoped<ResolveShortUrlHandler>();
 builder.Services.AddScoped<GetUrlStatsHandler>();
+builder.Services.AddScoped<DeactivateShortUrlHandler>();
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddEndpointsApiExplorer();
@@ -142,6 +143,34 @@ app.MapGet("/{shortCode}", async (string shortCode, HttpContext httpContext, [Fr
     }
 })
 .WithName("ResolveShortUrl")
+.WithOpenApi();
+
+// Endpoint: deactivateShortUrl (DELETE /api/v1/urls/{shortCode})
+app.MapDelete("/api/v1/urls/{shortCode}", async (string shortCode, [FromServices] DeactivateShortUrlHandler handler) =>
+{
+    try
+    {
+        await handler.HandleAsync(new DeactivateShortUrlCommand(shortCode));
+        return Results.NoContent();
+    }
+    catch (KeyNotFoundException ex)
+    {
+        return Results.Problem(
+            statusCode: StatusCodes.Status404NotFound,
+            title: "Link Not Found",
+            detail: ex.Message
+        );
+    }
+    catch (Exception)
+    {
+        return Results.Problem(
+            statusCode: StatusCodes.Status500InternalServerError,
+            title: "Internal Server Error",
+            detail: "Erro ao desativar o link."
+        );
+    }
+})
+.WithName("DeactivateShortUrl")
 .WithOpenApi();
 
 app.Run();

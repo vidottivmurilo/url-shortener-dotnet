@@ -7,8 +7,8 @@ story_points: 2
 scope: "full-stack"
 covers_requirements: ["FR-004"]
 contract_operations: ["deactivateShortUrl"]
-status: "ready-for-dev"
-baseline_revision: ""
+status: "done"
+baseline_revision: "e06d73f00bc929ce87030c2675a51587ce5a969b"
 review_loop_iteration: 0
 ---
 
@@ -41,5 +41,32 @@ review_loop_iteration: 0
 
 ## 5. Mapa de Arquivos (Code Map)
 - **Testes Backend:** `tests/Shortener.UnitTests/Application/DeactivateShortUrlTests.cs`
-- **Implementação Application:** `src/Shortener.Application/Urls/DeactivateShortUrlCommand.cs`
-- **Implementação API & UI:** `src/Shortener.Api/Endpoints/UrlEndpoints.cs`, `src/Shortener.Api/wwwroot/app.js`
+- **Implementação Application:** `src/Shortener.Application/Urls/DeactivateShortUrlHandler.cs`
+- **Implementação API & UI:** `src/Shortener.Api/Program.cs`, `src/Shortener.Api/wwwroot/app.js`
+
+---
+
+## 6. Checklist Passo a Passo de Execução
+- [x] **Passo 1 (QA - TDD RED):** Criar testes de desativação (soft-delete, purga de cache e erro 404) garantindo Clean Red (2 falhas).
+- [x] **Passo 2 (Dev - TDD GREEN):** Implementar `DeactivateShortUrlHandler`, remoção de chave Redis e endpoint DELETE `/api/v1/urls/{shortCode}` retornando HTTP 204 (44 testes aprovados).
+- [x] **Passo 3 (Dev - Frontend UI):** Implementar ação de desativação com confirmação e atualização reativa do badge na tabela.
+- [x] **Passo 4 (Auto-Verificação & Mutation Check):** Mover status para `built`.
+
+---
+
+## 7. Evidências de Execução (TDD Logs)
+- **Fase RED:** `dotnet test` -> `Com falha! – Com falha: 2, Aprovado: 42, Total: 44` (Clean Red comprovado).
+- **Fase GREEN:** `dotnet test` -> `Aprovado! – Com falha: 0, Aprovado: 44, Total: 44` (100% GREEN verificado).
+
+---
+
+## 8. Histórico de Code Review (Gate de Qualidade)
+- **Data da Auditoria:** 2026-11-02
+- **Auditor:** Staff Engineer / Tech Code Reviewer
+- **Diff Inspecionado:** `baseline: e06d73f00bc929ce87030c2675a51587ce5a969b` até `HEAD`
+- **Dimensão 1 (Spec Compliance & Paridade):** `✅ APROVADO` (Endpoint DELETE /api/v1/urls/{shortCode}, purga de cache, soft-delete e ação na interface com confirmação).
+- **Dimensão 2 (Code Quality & Arquitetura):** `✅ APROVADO` (Isolamento de camadas e consistência transacional em memória; 44 testes passando).
+- **Severidades:** 0 Critical, 0 Important.
+- **Decisão:** Aprovado para promoção a `done`.
+
+
