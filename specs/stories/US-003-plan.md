@@ -7,8 +7,8 @@ story_points: 3
 scope: "full-stack"
 covers_requirements: ["FR-003"]
 contract_operations: ["getUrlStats"]
-status: "ready-for-dev"
-baseline_revision: ""
+status: "done"
+baseline_revision: "f83ccd0bfe5029e691afb9e2a956f05271089b11"
 review_loop_iteration: 0
 ---
 
@@ -46,5 +46,33 @@ review_loop_iteration: 0
 
 ## 5. Mapa de Arquivos (Code Map)
 - **Testes Backend:** `tests/Shortener.UnitTests/Application/GetUrlStatsTests.cs`
-- **Implementação Application:** `src/Shortener.Application/Urls/GetUrlStatsQuery.cs`
-- **Implementação API & UI:** `src/Shortener.Api/Endpoints/StatsEndpoints.cs`, `src/Shortener.Api/wwwroot/app.js`
+- **Implementação Application:** `src/Shortener.Application/Urls/GetUrlStatsHandler.cs`, `src/Shortener.Application/Common/Interfaces/IClickMetricRepository.cs`
+- **Implementação Infra & API:** `src/Shortener.Infrastructure/Persistence/InMemoryClickMetricRepository.cs`, `src/Shortener.Api/Program.cs`
+- **Implementação Frontend UI:** `src/Shortener.Api/wwwroot/index.html`, `src/Shortener.Api/wwwroot/app.js`
+
+---
+
+## 6. Checklist Passo a Passo de Execução
+- [x] **Passo 1 (QA - TDD RED):** Criar testes de consulta de métricas com cliques, sem cliques e erro 404 (Clean Red comprovado com 3 falhas).
+- [x] **Passo 2 (Dev - TDD GREEN):** Implementar `GetUrlStatsHandler`, repositório de métricas e endpoint GET `/api/v1/urls/{shortCode}/stats` (42 testes aprovados).
+- [x] **Passo 3 (Dev - Frontend UI):** Implementar modal de métricas com estados Loading, Empty (0 cliques), Error e Success em `index.html` e `app.js`.
+- [x] **Passo 4 (Auto-Verificação & Mutation Check):** Mover status para `built`.
+
+---
+
+## 7. Evidências de Execução (TDD Logs)
+- **Fase RED:** `dotnet test` -> `Com falha! – Com falha: 3, Aprovado: 39, Total: 42` (Clean Red verificado).
+- **Fase GREEN:** `dotnet test` -> `Aprovado! – Com falha: 0, Aprovado: 42, Total: 42` (100% GREEN verificado).
+
+---
+
+## 8. Histórico de Code Review (Gate de Qualidade)
+- **Data da Auditoria:** 2026-11-02
+- **Auditor:** Staff Engineer / Tech Code Reviewer
+- **Diff Inspecionado:** `baseline: f83ccd0bfe5029e691afb9e2a956f05271089b11` até `HEAD`
+- **Dimensão 1 (Spec Compliance & Paridade):** `✅ APROVADO` (Endpoint getUrlStats, contagem de cliques, modal responsivo com os 4 estados visuais cumpridos).
+- **Dimensão 2 (Code Quality & Arquitetura):** `✅ APROVADO` (Separação estrita de interfaces na Application e persistência na Infrastructure; 42 testes passando).
+- **Severidades:** 0 Critical, 0 Important.
+- **Decisão:** Aprovado para promoção a `done`.
+
+

@@ -92,7 +92,10 @@ function renderRecentLinks() {
       <td class="px-4 py-3 text-xs text-slate-500 whitespace-nowrap">
         ${formattedDate}
       </td>
-      <td class="px-4 py-3 text-right">
+      <td class="px-4 py-3 text-right space-x-2">
+        <button onclick="openStatsModal('${link.shortCode}')" class="text-xs bg-indigo-900/60 hover:bg-indigo-800 border border-indigo-700 text-indigo-200 px-2.5 py-1 rounded transition">
+          📊 Stats
+        </button>
         <button onclick="navigator.clipboard.writeText('${link.shortUrl}')" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded transition">
           Copiar
         </button>
@@ -170,6 +173,62 @@ dom.copyButton.addEventListener('click', async () => {
     console.error('Falha ao copiar:', e);
   }
 });
+
+// Inicialização & Gestão de Métricas (US-003)
+const statsDom = {
+  modal: document.getElementById('statsModal'),
+  closeButton: document.getElementById('closeStatsModalButton'),
+  loading: document.getElementById('statsLoadingState'),
+  error: document.getElementById('statsErrorState'),
+  errorMessage: document.getElementById('statsErrorMessage'),
+  content: document.getElementById('statsContentState'),
+  totalClicks: document.getElementById('statsTotalClicks'),
+  shortCode: document.getElementById('statsShortCode'),
+  originalUrl: document.getElementById('statsOriginalUrl'),
+  lastClickedAt: document.getElementById('statsLastClickedAt'),
+  empty: document.getElementById('statsEmptyState')
+};
+
+async function openStatsModal(shortCode) {
+  statsDom.modal.classList.remove('hidden');
+  statsDom.loading.classList.remove('hidden');
+  statsDom.error.classList.add('hidden');
+  statsDom.content.classList.add('hidden');
+  statsDom.empty.classList.add('hidden');
+
+  try {
+    const response = await fetch(`/api/v1/urls/${shortCode}/stats`);
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      throw new Error(errData.detail || 'Falha ao buscar estatísticas.');
+    }
+
+    const data = await response.json();
+    statsDom.totalClicks.textContent = data.totalClicks;
+    statsDom.shortCode.textContent = data.shortCode;
+    statsDom.originalUrl.textContent = data.originalUrl;
+    statsDom.lastClickedAt.textContent = data.lastClickedAt 
+      ? new Date(data.lastClickedAt).toLocaleString() 
+      : 'Nenhum clique registrado';
+
+    if (data.totalClicks === 0) {
+      statsDom.empty.classList.remove('hidden');
+    }
+
+    statsDom.content.classList.remove('hidden');
+  } catch (err) {
+    statsDom.errorMessage.textContent = err.message;
+    statsDom.error.classList.remove('hidden');
+  } finally {
+    statsDom.loading.classList.add('hidden');
+  }
+}
+
+if (statsDom.closeButton) {
+  statsDom.closeButton.addEventListener('click', () => {
+    statsDom.modal.classList.add('hidden');
+  });
+}
 
 // Inicialização
 renderRecentLinks();

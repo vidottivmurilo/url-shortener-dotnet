@@ -10,7 +10,7 @@
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | `FR-001` | `US-001` | `createShortUrl` | `POST /api/v1/urls` | `CreateShortUrlHandler` | `/` (`UrlShortenerForm`, `ShortenedLinkCard`) | `Loading`, `Error 400`, `Success` | `CreateShortUrlTests` | `UrlShortenerFormTests` | `[X] Paridade OK (done)` |
 | `FR-002` | `US-002` | `resolveShortUrl` | `GET /{shortCode}` | `ResolveShortUrlHandler` | `/` (`RedirectRouter`) | `Success 302`, `Error 404/410` | `ResolveShortUrlTests` | `RedirectTests` | `[X] Paridade OK (done)` |
-| `FR-003` | `US-003` | `getUrlStats` | `GET /api/v1/urls/{shortCode}/stats` | `GetUrlStatsHandler` | `/` (`UrlStatsModal`) | `Loading`, `Empty`, `Error 404`, `Success` | `GetUrlStatsTests` | `UrlStatsModalTests` | `[ ] Pendente` |
+| `FR-003` | `US-003` | `getUrlStats` | `GET /api/v1/urls/{shortCode}/stats` | `GetUrlStatsHandler` | `/` (`UrlStatsModal`) | `Loading`, `Empty`, `Error 404`, `Success` | `GetUrlStatsTests` | `UrlStatsModalTests` | `[X] Paridade OK (done)` |
 | `FR-004` | `US-004` | `deactivateShortUrl` | `DELETE /api/v1/urls/{shortCode}` | `DeactivateShortUrlHandler` | `/` (`RecentLinksTable` action) | `Loading`, `Error 404`, `Success 204` | `DeactivateShortUrlTests` | `DeactivateActionTests` | `[ ] Pendente` |
 
 ---
