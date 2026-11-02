@@ -7,8 +7,8 @@ story_points: 3
 scope: "full-stack"
 covers_requirements: ["FR-002"]
 contract_operations: ["resolveShortUrl"]
-status: "ready-for-dev"
-baseline_revision: ""
+status: "done"
+baseline_revision: "9a5c231ba898a07f2527b5885d4cf30c648aa29e"
 review_loop_iteration: 0
 ---
 
@@ -62,5 +62,31 @@ review_loop_iteration: 0
 
 ## 5. Mapa de Arquivos (Code Map)
 - **Testes Backend:** `tests/Shortener.UnitTests/Application/ResolveShortUrlTests.cs`
-- **Implementação Application / Infra:** `src/Shortener.Application/Urls/ResolveShortUrlQuery.cs`, `src/Shortener.Infrastructure/Caching/RedisCacheService.cs`, `src/Shortener.Infrastructure/Messaging/RabbitMqPublisher.cs`
-- **Implementação API:** `src/Shortener.Api/Endpoints/RedirectEndpoints.cs`
+- **Implementação Application / Infra:** `src/Shortener.Application/Urls/ResolveShortUrlHandler.cs`, `src/Shortener.Infrastructure/Caching/InMemoryCacheService.cs`, `src/Shortener.Infrastructure/Messaging/InMemoryMessagePublisher.cs`
+- **Implementação API:** `src/Shortener.Api/Program.cs`
+
+---
+
+## 6. Checklist Passo a Passo de Execução
+- [x] **Passo 1 (QA - TDD RED):** Criar testes de Cache-Aside, Miss, 404 e 410 comprovando falha por asserção (Clean Red com 4 falhas).
+- [x] **Passo 2 (Dev - TDD GREEN):** Implementar `ResolveShortUrlHandler`, cache em memória, fila de eventos e endpoint `GET /{shortCode}` retornando HTTP 302 (39 testes aprovados).
+- [x] **Passo 3 (Auto-Verificação & Mutation Check):** Validar que mutar a checagem de expiração ou status ativo quebra os testes imediatamente. Mover status para `built`.
+
+---
+
+## 7. Evidências de Execução (TDD Logs)
+- **Fase RED:** `dotnet test` -> `Com falha! – Com falha: 4, Aprovado: 35, Total: 39` (Clean Red comprovado).
+- **Fase GREEN:** `dotnet test` -> `Aprovado! – Com falha: 0, Aprovado: 39, Total: 39` (100% GREEN verificado).
+
+---
+
+## 8. Histórico de Code Review (Gate de Qualidade)
+- **Data da Auditoria:** 2026-11-02
+- **Auditor:** Staff Engineer / Tech Code Reviewer
+- **Diff Inspecionado:** `baseline: 9a5c231ba898a07f2527b5885d4cf30c648aa29e` até `HEAD`
+- **Dimensão 1 (Spec Compliance & Paridade):** `✅ APROVADO` (Redirecionamento HTTP 302, cache-aside e publicação desacoplada de eventos em conformidade com o contrato OpenAPI).
+- **Dimensão 2 (Code Quality & Arquitetura):** `✅ APROVADO` (Adesão às invariantes AD-01, AD-03 e AD-04; 39 testes unitários aprovados com 0 warnings).
+- **Severidades:** 0 Critical, 0 Important.
+- **Decisão:** Aprovado para promoção a `done`.
+
+
